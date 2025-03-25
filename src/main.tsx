@@ -1,39 +1,81 @@
 import { Devvit, useState, useInterval } from '@devvit/public-api';
-const DARK_THEME = {
-  background: "#1A1A1B",         // Dark background
-  cardBackground: "#272729",     // Slightly lighter for cards
-  border: "#343536",             // Dark border
-  textPrimary: "#D7DADC",        // Light gray text
-  textSecondary: "#818384",      // Medium gray text
-  accent: "#FF4500",             // Reddit orange
-  primary: "#0079D3",            // Reddit blue
-  success: "#0EA529",            // Green for success states
-  warning: "#FF8717",            // Orange warning
-  danger: "#FF585B",             // Red for danger/errors
-  headerBackground: "#1A1A1B",   // Header background
+
+// DARK THEME - Shadow Sovereign Style
+const SHADOW_THEME = {
+  background: "#141414",           // Darker background
+  cardBackground: "#1E1E1E",       // Slightly lighter for cards
+  border: "#2A2A2A",               // Dark border
+  textPrimary: "#E1E1E1",          // Light gray text
+  textSecondary: "#A0A0A0",        // Medium gray text
+  accent: "#4D2DB7",               // Purple accent (like Sung Jin-Woo's powers)
+  primary: "#6643B5",              // Secondary purple
+  secondary: "#2A2A2A",            // Dark gray for secondary elements
+  success: "#67E8B6",              // Mint green for success states
+  warning: "#FFC107",              // Yellow warning
+  danger: "#B71C1C",               // Deep red for danger/errors
+  headerBackground: "#0A0A0A",     // Header background
 };
-// Game data constants remain the same
-// Only showing a sample here for brevity
+
+// Game data constants
 const MONSTERS = [
   {
     id: 'goblin',
-    name: 'Goblin Scout',
+    name: 'D-Rank Goblin',
     health: 50,
     maxHealth: 50,
     damage: 5,
     experience: 20,
     goldDrop: 15,
-    description: 'A small, nimble goblin armed with a rusty dagger.'
+    description: 'A weak monster that typically appears in low-rank dungeons.'
   },
-  // Other monsters...
+  {
+    id: 'orc',
+    name: 'C-Rank Orc Warrior',
+    health: 120,
+    maxHealth: 120,
+    damage: 12,
+    experience: 40,
+    goldDrop: 30,
+    description: 'A muscular orc warrior armed with a crude axe.'
+  },
+  {
+    id: 'troll',
+    name: 'B-Rank Dungeon Troll',
+    health: 200,
+    maxHealth: 200,
+    damage: 20,
+    experience: 80,
+    goldDrop: 60,
+    description: 'A large troll with regenerative abilities.'
+  },
+  // {
+  //   id: 'cerberus',
+  //   name: 'A-Rank Cerberus',
+  //   health: 350,
+  //   maxHealth: 350,
+  //   damage: 35,
+  //   experience: 150,
+  //   goldDrop: 120,
+  //   description: 'A three-headed hellhound that breathes fire.'
+  // },
+  // {
+  //   id: 'dragon',
+  //   name: 'S-Rank Ice Dragon',
+  //   health: 600,
+  //   maxHealth: 600,
+  //   damage: 60,
+  //   experience: 300,
+  //   goldDrop: 250,
+  //   description: 'An ancient ice dragon capable of freezing its enemies with a single breath.'
+  // }
 ];
 
 const QUESTS = [
   {
-    id: 'goblin_camp',
-    name: 'Clear the Goblin Camp',
-    description: 'A band of goblins has been raiding local farmers. Eliminate them to restore peace.',
-    difficulty: 'Easy',
+    id: 'e_rank_gate',
+    name: 'E-Rank Gate',
+    description: 'An E-Rank gate has appeared in the city. Clear it before monsters spill out.',
+    difficulty: 'E-Rank',
     monsters: [
       { ...MONSTERS[0] }, // Goblin
       { ...MONSTERS[0] }, // Goblin
@@ -46,46 +88,271 @@ const QUESTS = [
     },
     isComplete: false,
   },
-  // Other quests...
+  {
+    id: 'd_rank_gate',
+    name: 'D-Rank Gate',
+    description: 'A D-Rank gate threatens nearby civilians. Eliminate all monsters inside.',
+    difficulty: 'D-Rank',
+    monsters: [
+      { ...MONSTERS[0] }, // Goblin
+      { ...MONSTERS[0] }, // Goblin
+      { ...MONSTERS[1] }, // Orc
+    ],
+    currentMonsterIndex: 0,
+    rewards: {
+      gold: 100,
+      experience: 200,
+      items: [],
+    },
+    isComplete: false,
+  },
+  // {
+  //   id: 'c_rank_gate',
+  //   name: 'C-Rank Gate',
+  //   description: 'Hunters have reported strange activity in this C-Rank gate. Investigate and clear it.',
+  //   difficulty: 'C-Rank',
+  //   monsters: [
+  //     { ...MONSTERS[1] }, // Orc
+  //     { ...MONSTERS[1] }, // Orc
+  //     { ...MONSTERS[2] }, // Troll
+  //   ],
+  //   currentMonsterIndex: 0,
+  //   rewards: {
+  //     gold: 200,
+  //     experience: 400,
+  //     items: [],
+  //   },
+  //   isComplete: false,
+  // },
+  // {
+  //   id: 'b_rank_gate',
+  //   name: 'B-Rank Gate',
+  //   description: 'Only experienced hunters should attempt this B-Rank gate. Powerful monsters await inside.',
+  //   difficulty: 'B-Rank',
+  //   monsters: [
+  //     { ...MONSTERS[2] }, // Troll
+  //     { ...MONSTERS[2] }, // Troll
+  //     { ...MONSTERS[3] }, // Cerberus
+  //   ],
+  //   currentMonsterIndex: 0,
+  //   rewards: {
+  //     gold: 400,
+  //     experience: 800,
+  //     items: [],
+  //   },
+  //   isComplete: false,
+  // },
+  // {
+  //   id: 'a_rank_gate',
+  //   name: 'A-Rank Gate',
+  //   description: 'An A-Rank gate has opened. Only top hunters stand a chance against what lies within.',
+  //   difficulty: 'A-Rank',
+  //   monsters: [
+  //     { ...MONSTERS[3] }, // Cerberus
+  //     { ...MONSTERS[3] }, // Cerberus
+  //     { ...MONSTERS[4] }, // Dragon
+  //   ],
+  //   currentMonsterIndex: 0,
+  //   rewards: {
+  //     gold: 800,
+  //     experience: 1600,
+  //     items: [],
+  //   },
+  //   isComplete: false,
+  // }
 ];
 
 const STARTER_ITEMS = {
-  Warrior: {
-    id: 'sword',
-    name: 'Iron Sword',
+  'Shadow Monarch': {
+    id: 'shadow_dagger',
+    name: 'Shadow Dagger',
+    type: 'weapon',
+    value: 10,
+    power: 8,
+    description: 'A dagger made of shadows that can extend its reach.'
+  },
+  'Tank Hunter': {
+    id: 'shield',
+    name: 'Hunter Shield',
     type: 'weapon',
     value: 10,
     power: 5,
-    description: 'A standard iron sword. Reliable in combat.'
+    description: 'A sturdy shield that can block monster attacks.'
   },
-  // Other class items...
+  'Mage Hunter': {
+    id: 'staff',
+    name: 'Mana Staff',
+    type: 'weapon',
+    value: 10,
+    power: 7,
+    description: 'A staff that channels magical energy for attacks.'
+  },
+  'Healer Hunter': {
+    id: 'wand',
+    name: 'Healing Wand',
+    type: 'weapon',
+    value: 10,
+    power: 4,
+    description: 'A wand that can channel healing energy.'
+  }
 };
 
 const SHOP_ITEMS = [
   {
     id: 'steel_sword',
-    name: 'Steel Sword',
+    name: 'Hunter Blade',
     type: 'weapon',
     value: 100,
-    power: 12,
-    description: 'A well-crafted steel sword with improved damage.'
+    power: 15,
+    description: 'A well-crafted sword designed for hunting monsters.'
   },
-  // Other shop items...
+  {
+    id: 'shadow_armor',
+    name: 'Shadow Armor',
+    type: 'armor',
+    value: 150,
+    power: 12,
+    description: 'Lightweight armor made from shadows that absorbs damage.'
+  },
+  {
+    id: 'mana_staff',
+    name: 'Enhanced Mana Staff',
+    type: 'weapon',
+    value: 200,
+    power: 25,
+    description: 'A powerful staff that channels increased magical energy.'
+  },
+  {
+    id: 'health_potion',
+    name: 'Healing Potion',
+    type: 'potion',
+    value: 50,
+    power: 50,
+    description: 'Restores 50 health points when consumed.'
+  },
+  {
+    id: 'berserk_gauntlets',
+    name: 'Berserker Gauntlets',
+    type: 'weapon',
+    value: 300,
+    power: 30,
+    description: 'Gauntlets that increase attack power at the cost of defense.'
+  },
+  {
+    id: 'magic_robe',
+    name: 'Mana Robe',
+    type: 'armor',
+    value: 250,
+    power: 15,
+    description: 'A robe that enhances magical abilities and provides protection.'
+  }
 ];
 
 const CLASS_SKILLS = {
-  Warrior: [
+  'Shadow Monarch': [
     {
-      id: 'slash',
-      name: 'Slash',
+      id: 'shadow_strike',
+      name: 'Shadow Strike',
+      damage: 15,
+      cooldown: 0,
+      currentCooldown: 0,
+      description: 'Strike with shadow-infused power'
+    },
+    {
+      id: 'arise',
+      name: 'Arise',
+      damage: 30,
+      cooldown: 3,
+      currentCooldown: 0,
+      description: 'Summon a shadow soldier to fight for you'
+    },
+    {
+      id: 'shadow_exchange',
+      name: 'Shadow Exchange',
+      damage: 25,
+      cooldown: 2,
+      currentCooldown: 0,
+      description: 'Swap positions with your shadow for a surprise attack'
+    }
+  ],
+  'Tank Hunter': [
+    {
+      id: 'shield_bash',
+      name: 'Shield Bash',
       damage: 10,
       cooldown: 0,
       currentCooldown: 0,
-      description: 'A basic slash attack'
+      description: 'A basic attack with your shield'
     },
-    // Other skills...
+    {
+      id: 'taunt',
+      name: 'Taunt',
+      damage: 5,
+      cooldown: 2,
+      currentCooldown: 0,
+      description: 'Force monsters to target you instead of teammates'
+    },
+    {
+      id: 'defensive_stance',
+      name: 'Defensive Stance',
+      damage: 8,
+      cooldown: 3,
+      currentCooldown: 0,
+      description: 'Increase defense for 2 turns'
+    }
   ],
-  // Other classes...
+  'Mage Hunter': [
+    {
+      id: 'fireball',
+      name: 'Fireball',
+      damage: 15,
+      cooldown: 0,
+      currentCooldown: 0,
+      description: 'Launch a ball of fire at your target'
+    },
+    {
+      id: 'ice_lance',
+      name: 'Ice Lance',
+      damage: 25,
+      cooldown: 2,
+      currentCooldown: 0,
+      description: 'Pierce your enemy with a lance of ice'
+    },
+    {
+      id: 'lightning_bolt',
+      name: 'Lightning Bolt',
+      damage: 35,
+      cooldown: 3,
+      currentCooldown: 0,
+      description: 'Strike your enemy with a powerful bolt of lightning'
+    }
+  ],
+  'Healer Hunter': [
+    {
+      id: 'smite',
+      name: 'Smite',
+      damage: 8,
+      cooldown: 0,
+      currentCooldown: 0,
+      description: 'A basic attack with divine energy'
+    },
+    {
+      id: 'heal',
+      name: 'Heal',
+      damage: -40,
+      cooldown: 2,
+      currentCooldown: 0,
+      description: 'Heal a party member for 40 health'
+    },
+    {
+      id: 'group_heal',
+      name: 'Group Heal',
+      damage: -20,
+      cooldown: 4,
+      currentCooldown: 0,
+      description: 'Heal all party members for 20 health'
+    }
+  ]
 };
 
 // Configure Devvit
@@ -99,64 +366,72 @@ const CharacterBlock = ({ player, isCurrentPlayer = false }) => {
   if (!player) return (
     <vstack 
       padding="medium" 
-      backgroundColor="#F8F9FA" 
+      backgroundColor={SHADOW_THEME.cardBackground} 
       borderRadius="medium"
       border="thin"
-      borderColor="#DAE0E6"
+      borderColor={SHADOW_THEME.border}
     >
-      <text>Character not found</text>
+      <text color={SHADOW_THEME.textPrimary}>Hunter not found</text>
     </vstack>
   );
+  
+  // Calculate player rank based on level
+  let playerRank = "E";
+  if (player.level >= 20) playerRank = "S";
+  else if (player.level >= 15) playerRank = "A";
+  else if (player.level >= 10) playerRank = "B";
+  else if (player.level >= 5) playerRank = "C";
+  else if (player.level >= 3) playerRank = "D";
   
   return (
     <vstack 
       padding="medium" 
-      backgroundColor="#F8F9FA" 
+      backgroundColor={SHADOW_THEME.cardBackground} 
       borderRadius="medium"
       border="thin"
-      borderColor="#DAE0E6"
+      borderColor={SHADOW_THEME.border}
     >
       <hstack alignment="middle space-between">
-        <text weight="bold" size="large">{player.username}</text>
+        <text weight="bold" size="large" color={SHADOW_THEME.textPrimary}>{player.username}</text>
         <text 
-          color={player.health <= 0 ? "#FF4500" : "#0079D3"} 
+          color={player.health <= 0 ? SHADOW_THEME.danger : SHADOW_THEME.accent} 
           weight="bold"
         >
-          {player.health <= 0 ? "Knocked Out" : `Lvl ${player.level} ${player.class}`}
+          {player.health <= 0 ? "Incapacitated" : `${playerRank}-Rank ${player.class}`}
         </text>
       </hstack>
       
       <hstack gap="medium" padding="small">
         <vstack width="33%">
-          <text size="small" color="#878A8C">Health</text>
-          <text weight="bold">{player.health}/{player.maxHealth} ❤️</text>
+          <text size="small" color={SHADOW_THEME.textSecondary}>Health</text>
+          <text weight="bold" color={SHADOW_THEME.textPrimary}>{player.health}/{player.maxHealth} ❤️</text>
         </vstack>
         <vstack width="33%">
-          <text size="small" color="#878A8C">Gold</text>
-          <text weight="bold">{player.gold} 💰</text>
+          <text size="small" color={SHADOW_THEME.textSecondary}>Gold</text>
+          <text weight="bold" color={SHADOW_THEME.textPrimary}>{player.gold} 💰</text>
         </vstack>
         <vstack width="33%">
-          <text size="small" color="#878A8C">XP</text>
-          <text weight="bold">{player.experience}/{player.level * 100} 📊</text>
+          <text size="small" color={SHADOW_THEME.textSecondary}>XP</text>
+          <text weight="bold" color={SHADOW_THEME.textPrimary}>{player.experience}/{player.level * 100} 📊</text>
         </vstack>
       </hstack>
       
       <hstack padding="small">
         <vstack width="50%">
-          <text size="small" color="#878A8C">Weapon</text>
-          <text>{player.equipment.weapon?.name || "None"}</text>
+          <text size="small" color={SHADOW_THEME.textSecondary}>Weapon</text>
+          <text color={SHADOW_THEME.textPrimary}>{player.equipment.weapon?.name || "None"}</text>
         </vstack>
         <vstack width="50%">
-          <text size="small" color="#878A8C">Armor</text>
-          <text>{player.equipment.armor?.name || "None"}</text>
+          <text size="small" color={SHADOW_THEME.textSecondary}>Armor</text>
+          <text color={SHADOW_THEME.textPrimary}>{player.equipment.armor?.name || "None"}</text>
         </vstack>
       </hstack>
       
       {isCurrentPlayer && (
         <vstack paddingTop="small">
-          <text size="small" weight="bold" color="#878A8C">COMMANDS:</text>
-          <text size="small">/stats - View detailed stats</text>
-          <text size="small">/inventory - View your items</text>
+          <text size="small" weight="bold" color={SHADOW_THEME.textSecondary}>COMMANDS:</text>
+          <text size="small" color={SHADOW_THEME.textPrimary}>/stats - View detailed stats</text>
+          <text size="small" color={SHADOW_THEME.textPrimary}>/inventory - View your items</text>
         </vstack>
       )}
     </vstack>
@@ -164,44 +439,55 @@ const CharacterBlock = ({ player, isCurrentPlayer = false }) => {
 };
 
 const QuestBlock = ({ quest, index, onStartQuest, battleInProgress }) => {
+  // Map difficulty to colors
+  const difficultyColor = {
+    'E-Rank': SHADOW_THEME.success,
+    'D-Rank': SHADOW_THEME.primary,
+    'C-Rank': SHADOW_THEME.accent,
+    'B-Rank': SHADOW_THEME.warning,
+    'A-Rank': SHADOW_THEME.danger
+  };
+  
   return (
     <vstack 
       padding="medium" 
-      backgroundColor="#F8F9FA" 
+      backgroundColor={SHADOW_THEME.cardBackground} 
       borderRadius="medium"
       border="thin"
-      borderColor="#DAE0E6"
+      borderColor={SHADOW_THEME.border}
     >
       <hstack alignment="middle space-between">
-        <text weight="bold" size="large">{quest.name}</text>
+        <text weight="bold" size="large" color={SHADOW_THEME.textPrimary}>{quest.name}</text>
         <text 
-          color={quest.isComplete ? "#0EA529" : (quest.difficulty === 'Easy' ? "#0079D3" : (quest.difficulty === 'Medium' ? "#FF4500" : "#A10D00"))} 
+          color={quest.isComplete ? SHADOW_THEME.success : difficultyColor[quest.difficulty]} 
           weight="bold"
         >
-          {quest.isComplete ? "COMPLETED" : quest.difficulty}
+          {quest.isComplete ? "CLEARED" : quest.difficulty}
         </text>
       </hstack>
       
-      <text paddingVertical="small">{quest.description}</text>
+      <text paddingVertical="small" color={SHADOW_THEME.textPrimary}>{quest.description}</text>
       
       <hstack paddingTop="small">
         <vstack width="50%">
-          <text size="small" color="#878A8C">Reward</text>
-          <text>{quest.rewards.gold} gold, {quest.rewards.experience} XP</text>
+          <text size="small" color={SHADOW_THEME.textSecondary}>Reward</text>
+          <text color={SHADOW_THEME.textPrimary}>{quest.rewards.gold} gold, {quest.rewards.experience} XP</text>
         </vstack>
         
         <vstack width="50%" alignment="end middle">
           {quest.isComplete ? (
-            <hstack backgroundColor="#F6F7F8" padding="small" borderRadius="medium">
-              <text color="#0EA529" weight="bold">✓ Complete</text>
+            <hstack backgroundColor={SHADOW_THEME.secondary} padding="small" borderRadius="medium">
+              <text color={SHADOW_THEME.success} weight="bold">✓ Gate Cleared</text>
             </hstack>
           ) : (
             <button 
               color="primary" 
+              backgroundColor={SHADOW_THEME.primary}
+              textColor={SHADOW_THEME.textPrimary}
               disabled={battleInProgress}
               onPress={() => onStartQuest(index)}
             >
-              Start Quest
+              Enter Gate
             </button>
           )}
         </vstack>
@@ -215,14 +501,14 @@ const BattleBlock = ({ gameState, currentUser }) => {
     return (
       <vstack 
         padding="medium" 
-        backgroundColor="#F8F9FA" 
+        backgroundColor={SHADOW_THEME.cardBackground} 
         borderRadius="medium"
         border="thin"
-        borderColor="#DAE0E6"
+        borderColor={SHADOW_THEME.border}
         alignment="middle center"
       >
-        <text size="large" weight="bold" color="#878A8C">No Active Battle</text>
-        <text color="#878A8C" paddingVertical="small">Start a quest to begin an adventure!</text>
+        <text size="large" weight="bold" color={SHADOW_THEME.textSecondary}>No Active Gate</text>
+        <text color={SHADOW_THEME.textSecondary} paddingVertical="small">Enter a gate to begin hunting!</text>
       </vstack>
     );
   }
@@ -237,29 +523,29 @@ const BattleBlock = ({ gameState, currentUser }) => {
   return (
     <vstack 
       padding="medium" 
-      backgroundColor="#F8F9FA" 
+      backgroundColor={SHADOW_THEME.cardBackground} 
       borderRadius="medium"
       border="thin"
-      borderColor="#DAE0E6"
+      borderColor={SHADOW_THEME.border}
     >
       <hstack alignment="middle space-between">
-        <text weight="bold" size="large" color="#FF4500">{currentMonster.name}</text>
-        <text weight="bold">Round {gameState.battleState.roundCount}</text>
+        <text weight="bold" size="large" color={SHADOW_THEME.danger}>{currentMonster.name}</text>
+        <text weight="bold" color={SHADOW_THEME.textPrimary}>Round {gameState.battleState.roundCount}</text>
       </hstack>
       
-      <text paddingVertical="small">{currentMonster.description}</text>
+      <text paddingVertical="small" color={SHADOW_THEME.textPrimary}>{currentMonster.description}</text>
       
       {/* Monster health bar */}
       <vstack paddingVertical="small">
         <hstack alignment="middle space-between">
-          <text size="small" color="#878A8C">Monster Health</text>
-          <text size="small">{currentMonster.health}/{currentMonster.maxHealth}</text>
+          <text size="small" color={SHADOW_THEME.textSecondary}>Monster Health</text>
+          <text size="small" color={SHADOW_THEME.textPrimary}>{currentMonster.health}/{currentMonster.maxHealth}</text>
         </hstack>
-        <hstack width="100%" height="12px" backgroundColor="#F6F7F8" borderRadius="full">
+        <hstack width="100%" height="12px" backgroundColor={SHADOW_THEME.secondary} borderRadius="full">
           <hstack 
             width={`${healthPercentage}%`} 
             height="100%" 
-            backgroundColor={healthPercentage > 50 ? "#0EA529" : (healthPercentage > 25 ? "#FF4500" : "#A10D00")}
+            backgroundColor={healthPercentage > 50 ? SHADOW_THEME.success : (healthPercentage > 25 ? SHADOW_THEME.warning : SHADOW_THEME.danger)}
             borderRadius="full"
           />
         </hstack>
@@ -267,16 +553,16 @@ const BattleBlock = ({ gameState, currentUser }) => {
       
       {/* Turn order */}
       <vstack paddingVertical="small">
-        <text size="small" weight="bold" color="#878A8C">TURN ORDER:</text>
+        <text size="small" weight="bold" color={SHADOW_THEME.textSecondary}>TURN ORDER:</text>
         <hstack gap="small" wrap="wrap">
           {gameState.battleState.turnOrder.map((player, index) => (
             <hstack 
-              backgroundColor={index === 0 ? "#0079D3" : "#F6F7F8"}
+              backgroundColor={index === 0 ? SHADOW_THEME.accent : SHADOW_THEME.secondary}
               padding="xsmall"
               borderRadius="medium"
             >
               <text 
-                color={index === 0 ? "white" : "#878A8C"}
+                color={index === 0 ? SHADOW_THEME.textPrimary : SHADOW_THEME.textSecondary}
                 weight={index === 0 ? "bold" : "normal"}
               >
                 {index === 0 ? "➤ " : ""}{player}
@@ -288,26 +574,26 @@ const BattleBlock = ({ gameState, currentUser }) => {
       
       {/* Battle log */}
       <vstack 
-        backgroundColor="#F6F7F8"
+        backgroundColor={SHADOW_THEME.secondary}
         padding="small"
         borderRadius="medium"
         paddingVertical="small"
       >
-        <text size="small" weight="bold" color="#878A8C">BATTLE LOG:</text>
+        <text size="small" weight="bold" color={SHADOW_THEME.textSecondary}>BATTLE LOG:</text>
         {gameState.log.slice(-2).map(entry => (
-          <text size="small">{entry}</text>
+          <text size="small" color={SHADOW_THEME.textPrimary}>{entry}</text>
         ))}
       </vstack>
       
       {/* Battle commands */}
       {isPlayerTurn && (
         <vstack paddingTop="small">
-          <text size="small" weight="bold" color="#878A8C">YOUR TURN! COMMANDS:</text>
-          <text size="small">/attack - Basic attack</text>
+          <text size="small" weight="bold" color={SHADOW_THEME.textSecondary}>YOUR TURN! COMMANDS:</text>
+          <text size="small" color={SHADOW_THEME.textPrimary}>/attack - Basic attack</text>
           {currentUser?.skills.map(skill => (
-            <text size="small">/attack {skill.name} - {skill.description}</text>
+            <text size="small" color={SHADOW_THEME.textPrimary}>/attack {skill.name} - {skill.description}</text>
           ))}
-          {currentUser?.class === 'Cleric' && <text size="small">/heal [player] - Heal a party member</text>}
+          {currentUser?.class === 'Healer Hunter' && <text size="small" color={SHADOW_THEME.textPrimary}>/heal [player] - Heal a party member</text>}
         </vstack>
       )}
     </vstack>
@@ -318,42 +604,42 @@ const ShopBlock = ({ shopItems, playerGold }) => {
   return (
     <vstack 
       padding="medium" 
-      backgroundColor="#F8F9FA" 
+      backgroundColor={SHADOW_THEME.cardBackground} 
       borderRadius="medium"
       border="thin"
-      borderColor="#DAE0E6"
+      borderColor={SHADOW_THEME.border}
     >
       <hstack alignment="middle space-between">
-        <text weight="bold" size="large">Town Shop</text>
-        <text>Your Gold: {playerGold || 0} 💰</text>
+        <text weight="bold" size="large" color={SHADOW_THEME.textPrimary}>Hunter Association Shop</text>
+        <text color={SHADOW_THEME.textPrimary}>Your Gold: {playerGold || 0} 💰</text>
       </hstack>
       
       <vstack paddingVertical="small" gap="small">
         {shopItems?.slice(0, 3).map(item => (
           <hstack 
-            backgroundColor="#F6F7F8"
+            backgroundColor={SHADOW_THEME.secondary}
             padding="small"
             borderRadius="medium"
             gap="small"
           >
             <vstack width="70%">
-              <text weight="bold">{item.name}</text>
-              <text size="small">{item.description}</text>
-              {item.power && <text size="small">Power: {item.power}</text>}
+              <text weight="bold" color={SHADOW_THEME.textPrimary}>{item.name}</text>
+              <text size="small" color={SHADOW_THEME.textPrimary}>{item.description}</text>
+              {item.power && <text size="small" color={SHADOW_THEME.textPrimary}>Power: {item.power}</text>}
             </vstack>
             
             <vstack width="30%" alignment="end middle">
-              <text weight="bold">{item.value} 💰</text>
-              <text size="small" color="#878A8C">Type: {item.type}</text>
+              <text weight="bold" color={SHADOW_THEME.textPrimary}>{item.value} 💰</text>
+              <text size="small" color={SHADOW_THEME.textSecondary}>Type: {item.type}</text>
             </vstack>
           </hstack>
         ))}
       </vstack>
       
       <vstack paddingTop="small">
-        <text size="small" weight="bold" color="#878A8C">COMMANDS:</text>
-        <text size="small">/shop - View all items</text>
-        <text size="small">/buy [item] - Purchase an item</text>
+        <text size="small" weight="bold" color={SHADOW_THEME.textSecondary}>COMMANDS:</text>
+        <text size="small" color={SHADOW_THEME.textPrimary}>/shop - View all items</text>
+        <text size="small" color={SHADOW_THEME.textPrimary}>/buy [item] - Purchase an item</text>
       </vstack>
     </vstack>
   );
@@ -363,41 +649,56 @@ const JoinBlock = ({ gameState, selectedClass, setSelectedClass, handleJoinGame,
   return (
     <vstack 
       padding="medium" 
-      backgroundColor="#F8F9FA" 
+      backgroundColor={SHADOW_THEME.cardBackground} 
       borderRadius="medium"
       border="thin"
-      borderColor="#DAE0E6"
+      borderColor={SHADOW_THEME.border}
       alignment="center middle"
     >
-      <text size="large" weight="bold" color="#0079D3">Join the Adventure</text>
-      <text size="small" paddingVertical="small">Players: {gameState?.players.length || 0}/4</text>
+      <text size="large" weight="bold" color={SHADOW_THEME.accent}>Become a Hunter</text>
+      <text size="small" paddingVertical="small" color={SHADOW_THEME.textPrimary}>Hunters: {gameState?.players.length || 0}/4</text>
       
       {(!gameState?.players.length || gameState.players.length < 4) && 
         !gameState?.players.find(p => p.id === userId) ? (
         <vstack gap="medium" width="100%" alignment="center middle">
-          <text>Choose your class:</text>
+          <text color={SHADOW_THEME.textPrimary}>Choose your hunter class:</text>
           <hstack gap="small" wrap="wrap">
-            {['Warrior', 'Mage', 'Rogue', 'Cleric'].map((cls) => (
+            {['Shadow Monarch', 'Tank Hunter', 'Mage Hunter', 'Healer Hunter'].map((cls) => (
               <button 
                 color={selectedClass === cls ? 'primary' : 'secondary'}
+                backgroundColor={selectedClass === cls ? SHADOW_THEME.accent : SHADOW_THEME.secondary}
+                textColor={SHADOW_THEME.textPrimary}
                 onPress={() => setSelectedClass(cls)}
               >
                 {cls}
               </button>
             ))}
           </hstack>
-          <button color="primary" onPress={handleJoinGame}>Join the Adventure</button>
+          <button 
+            color="primary" 
+            backgroundColor={SHADOW_THEME.accent}
+            textColor={SHADOW_THEME.textPrimary}
+            onPress={handleJoinGame}
+          >
+            Start Hunting
+          </button>
         </vstack>
       ) : (
         <vstack gap="medium" width="100%" alignment="center middle">
           {gameState?.players.find(p => p.id === userId && !p.isReady) ? (
-            <button onPress={handleReady}>Ready Up</button>
+            <button 
+              backgroundColor={SHADOW_THEME.accent}
+              textColor={SHADOW_THEME.textPrimary}
+              onPress={handleReady}
+            >
+              Ready Up
+            </button>
           ) : (
-            <text>
-              {gameState?.players.filter(p => p.isReady).length || 0}/{gameState?.players.length || 0} Players Ready
+            <text color={SHADOW_THEME.textPrimary}>
+              {gameState?.players.filter(p => p.isReady).length || 0}/{gameState?.players.length || 0} Hunters Ready
             </text>
           )}
-          <text>Waiting for all players to be ready...</text>
+          <text color={SHADOW_THEME.textPrimary}>Waiting for all hunters to be ready...</text>
         </vstack>
       )}
     </vstack>
@@ -406,13 +707,13 @@ const JoinBlock = ({ gameState, selectedClass, setSelectedClass, handleJoinGame,
 
 // Reddit-themed custom post type for the game
 Devvit.addCustomPostType({
-  name: 'Dungeon Quests',
+  name: 'Level Maxing',
   height: 'tall',
   render: (context) => {
     // State variables 
     const [gameState, setGameState] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [selectedClass, setSelectedClass] = useState('Warrior');
+    const [selectedClass, setSelectedClass] = useState('Shadow Monarch');
     const [activePage, setActivePage] = useState('main'); // main, profile, quests, shop, party
     
     // Sync with Redis storage
@@ -420,7 +721,7 @@ Devvit.addCustomPostType({
       try {
         if (!context.postId) return;
         
-        const storedState = await context.redis.get(`dungeon_${context.postId}`);
+        const storedState = await context.redis.get(`sololeveling_${context.postId}`);
         if (storedState) {
           const parsedState = JSON.parse(storedState);
           setGameState(parsedState);
@@ -443,7 +744,7 @@ Devvit.addCustomPostType({
             shopItems: [...SHOP_ITEMS] // Initialize shop
           };
           
-          await context.redis.set(`dungeon_${context.postId}`, JSON.stringify(newGameState));
+          await context.redis.set(`sololeveling_${context.postId}`, JSON.stringify(newGameState));
           setGameState(newGameState);
         }
       } finally {
@@ -485,7 +786,7 @@ Devvit.addCustomPostType({
         players: [...gameState.players, newPlayer],
       };
       
-      await context.redis.set(`dungeon_${context.postId}`, JSON.stringify(updatedState));
+      await context.redis.set(`sololeveling_${context.postId}`, JSON.stringify(updatedState));
       setGameState(updatedState);
     };
     
@@ -506,10 +807,10 @@ Devvit.addCustomPostType({
       const updatedState = {
         ...gameState,
         players: updatedPlayers,
-        gameStarted: allReady && updatedPlayers.length >= 1 // Allow solo play for testing
+        gameStarted: allReady && updatedPlayers.length >= 1 // Allow solo play
       };
       
-      await context.redis.set(`dungeon_${context.postId}`, JSON.stringify(updatedState));
+      await context.redis.set(`sololeveling_${context.postId}`, JSON.stringify(updatedState));
       setGameState(updatedState);
     };
     
@@ -535,7 +836,7 @@ Devvit.addCustomPostType({
         },
         log: [
           ...gameState.log,
-          `Quest Started: **${quest.name}**`,
+          `Gate Opened: **${quest.name}**`,
           `First monster: **${quest.monsters[0].name}**`,
           `${quest.monsters[0].description}`
         ]
@@ -548,12 +849,12 @@ Devvit.addCustomPostType({
         [updatedState.battleState.turnOrder[j], updatedState.battleState.turnOrder[i]];
       }
       
-      await context.redis.set(`dungeon_${context.postId}`, JSON.stringify(updatedState));
+      await context.redis.set(`sololeveling_${context.postId}`, JSON.stringify(updatedState));
       setGameState(updatedState);
       
       // Post a comment to start the battle
       await context.reddit.submitComment({
-        text: `# Quest: ${quest.name} - Battle Start!
+        text: `# Gate: ${quest.name} - Hunter Entry!
 
 ${quest.description}
 
@@ -563,9 +864,9 @@ ${quest.monsters[0].description}
 ## Battle Commands:
 - \`/attack\` - Use default attack
 - \`/attack [skill]\` - Use a specific skill
-- \`/heal [player]\` - Heal a player (Clerics only)
+- \`/heal [player]\` - Heal a hunter (Healer Hunters only)
 
-First player to act: **${updatedState.battleState.turnOrder[0]}**`,
+First hunter to act: **${updatedState.battleState.turnOrder[0]}**`,
         id: context.postId
       });
     };
@@ -583,16 +884,16 @@ First player to act: **${updatedState.battleState.turnOrder[0]}**`,
         players: healedPlayers,
         log: [
           ...gameState.log,
-          `The party takes a rest and recovers to full health.`
+          `The hunters return to the Association and recover to full health.`
         ]
       };
       
-      await context.redis.set(`dungeon_${context.postId}`, JSON.stringify(updatedState));
+      await context.redis.set(`sololeveling_${context.postId}`, JSON.stringify(updatedState));
       setGameState(updatedState);
       
       await context.reddit.submitComment({
-        text: `# Party Rest
-The party takes a rest at the campfire. All players have recovered to full health.`,
+        text: `# Hunters' Rest
+The hunters return to the Association headquarters. All hunters have recovered to full health.`,
         id: context.postId
       });
     };
@@ -600,8 +901,8 @@ The party takes a rest at the campfire. All players have recovered to full healt
     // Show loading state if data isn't ready
     if (!context.postId || isLoading) {
       return (
-        <vstack alignment="middle center" height="100%">
-          <text size="large">Loading Dungeon Quests...</text>
+        <vstack alignment="middle center" height="100%" backgroundColor={SHADOW_THEME.background}>
+          <text size="large" color={SHADOW_THEME.textPrimary}>Loading Level Maxing...</text>
         </vstack>
       );
     }
@@ -612,16 +913,16 @@ The party takes a rest at the campfire. All players have recovered to full healt
     // Show lobby if game hasn't started
     if (!gameState?.gameStarted) {
       return (
-        <vstack>
-          {/* Reddit-themed header */}
+        <vstack backgroundColor={SHADOW_THEME.background}>
+          {/* Shadow-themed header */}
           <hstack 
             width="100%" 
             padding="small" 
-            backgroundColor="#DAE0E6" 
+            backgroundColor={SHADOW_THEME.headerBackground} 
             borderRadius="small"
             gap="small"
           >
-            <text weight="bold" color="#1A1A1B">Dungeon Quests - Lobby</text>
+            <text weight="bold" color={SHADOW_THEME.accent}>Level Maxing - Lobby</text>
           </hstack>
           
           <JoinBlock
@@ -639,39 +940,42 @@ The party takes a rest at the campfire. All players have recovered to full healt
     // Main page: Character + Battle + Shop layout in 3 blocks
     if (activePage === 'main') {
       return (
-        <vstack gap="small">
-          {/* Reddit-themed header with navigation tabs */}
+        <vstack gap="small" backgroundColor={SHADOW_THEME.background}>
+          {/* Shadow-themed header with navigation tabs */}
           <hstack 
             width="100%" 
             padding="small" 
-            backgroundColor="#DAE0E6" 
+            backgroundColor={SHADOW_THEME.headerBackground} 
             borderRadius="small"
             gap="small"
             alignment="middle space-between"
           >
-            <text weight="bold" color="#1A1A1B">Dungeon Quests</text>
+            <text weight="bold" color={SHADOW_THEME.accent}>Level Maxing</text>
             
             <hstack gap="small">
               <button 
                 size="small" 
-                color="primary" 
+                backgroundColor={SHADOW_THEME.accent}
+                textColor={SHADOW_THEME.textPrimary}
                 onPress={() => setActivePage('main')}
               >
                 Main
               </button>
               <button 
                 size="small" 
-                color="secondary" 
+                backgroundColor={SHADOW_THEME.secondary}
+                textColor={SHADOW_THEME.textPrimary}
                 onPress={() => setActivePage('quests')}
               >
-                Quests
+                Gates
               </button>
               <button 
                 size="small" 
-                color="secondary" 
+                backgroundColor={SHADOW_THEME.secondary}
+                textColor={SHADOW_THEME.textPrimary}
                 onPress={() => setActivePage('party')}
               >
-                Party
+                Hunters
               </button>
             </hstack>
           </hstack>
@@ -700,47 +1004,50 @@ The party takes a rest at the campfire. All players have recovered to full healt
       );
     }
     
-    // Quests page
+    // Gates page
     if (activePage === 'quests') {
       return (
-        <vstack gap="small">
-          {/* Reddit-themed header with navigation tabs */}
+        <vstack gap="small" backgroundColor={SHADOW_THEME.background}>
+          {/* Shadow-themed header with navigation tabs */}
           <hstack 
             width="100%" 
             padding="small" 
-            backgroundColor="#DAE0E6" 
+            backgroundColor={SHADOW_THEME.headerBackground} 
             borderRadius="small"
             gap="small"
             alignment="middle space-between"
           >
-            <text weight="bold" color="#1A1A1B">Dungeon Quests - Quests</text>
+            <text weight="bold" color={SHADOW_THEME.accent}>Level Maxing - Gates</text>
             
             <hstack gap="small">
               <button 
                 size="small" 
-                color="secondary" 
+                backgroundColor={SHADOW_THEME.secondary}
+                textColor={SHADOW_THEME.textPrimary}
                 onPress={() => setActivePage('main')}
               >
                 Main
               </button>
               <button 
                 size="small" 
-                color="primary" 
+                backgroundColor={SHADOW_THEME.accent}
+                textColor={SHADOW_THEME.textPrimary}
                 onPress={() => setActivePage('quests')}
               >
-                Quests
+                Gates
               </button>
               <button 
                 size="small" 
-                color="secondary" 
+                backgroundColor={SHADOW_THEME.secondary}
+                textColor={SHADOW_THEME.textPrimary}
                 onPress={() => setActivePage('party')}
               >
-                Party
+                Hunters
               </button>
             </hstack>
           </hstack>
           
-          {/* Quests list */}
+          {/* Gates list */}
           <vstack gap="small">
             {gameState.quests.map((quest, index) => (
               <QuestBlock 
@@ -754,18 +1061,19 @@ The party takes a rest at the campfire. All players have recovered to full healt
             {/* Rest button */}
             <vstack 
               padding="medium" 
-              backgroundColor="#F8F9FA" 
+              backgroundColor={SHADOW_THEME.cardBackground} 
               borderRadius="medium"
               border="thin"
-              borderColor="#DAE0E6"
+              borderColor={SHADOW_THEME.border}
               alignment="middle center"
             >
               <button 
-                color="secondary"
+                backgroundColor={SHADOW_THEME.secondary}
+                textColor={SHADOW_THEME.textPrimary}
                 onPress={handleRest}
                 disabled={gameState?.battleState.isActive}
               >
-                Rest (Recover All HP)
+                Return to Association (Recover HP)
               </button>
             </vstack>
           </vstack>
@@ -773,47 +1081,50 @@ The party takes a rest at the campfire. All players have recovered to full healt
       );
     }
     
-    // Party page
+    // Hunters page
     if (activePage === 'party') {
       return (
-        <vstack gap="small">
-          {/* Reddit-themed header with navigation tabs */}
+        <vstack gap="small" backgroundColor={SHADOW_THEME.background}>
+          {/* Shadow-themed header with navigation tabs */}
           <hstack 
             width="100%" 
             padding="small" 
-            backgroundColor="#DAE0E6" 
+            backgroundColor={SHADOW_THEME.headerBackground} 
             borderRadius="small"
             gap="small"
             alignment="middle space-between"
           >
-            <text weight="bold" color="#1A1A1B">Dungeon Quests - Party</text>
+            <text weight="bold" color={SHADOW_THEME.accent}>Level Maxing - Hunters</text>
             
             <hstack gap="small">
               <button 
                 size="small" 
-                color="secondary" 
+                backgroundColor={SHADOW_THEME.secondary}
+                textColor={SHADOW_THEME.textPrimary}
                 onPress={() => setActivePage('main')}
               >
                 Main
               </button>
               <button 
                 size="small" 
-                color="secondary" 
+                backgroundColor={SHADOW_THEME.secondary}
+                textColor={SHADOW_THEME.textPrimary}
                 onPress={() => setActivePage('quests')}
               >
-                Quests
+                Gates
               </button>
               <button 
                 size="small" 
-                color="primary" 
+                backgroundColor={SHADOW_THEME.accent}
+                textColor={SHADOW_THEME.textPrimary}
                 onPress={() => setActivePage('party')}
               >
-                Party
+                Hunters
               </button>
             </hstack>
           </hstack>
           
-          {/* Party members list */}
+          {/* Hunters members list */}
           <vstack gap="small">
             {gameState.players.map(player => (
               <CharacterBlock 
@@ -825,24 +1136,35 @@ The party takes a rest at the campfire. All players have recovered to full healt
             {/* Party stats */}
             <vstack 
               padding="medium" 
-              backgroundColor="#F8F9FA" 
+              backgroundColor={SHADOW_THEME.cardBackground} 
               borderRadius="medium"
               border="thin"
-              borderColor="#DAE0E6"
+              borderColor={SHADOW_THEME.border}
             >
-              <text weight="bold">Party Stats</text>
+              <text weight="bold" color={SHADOW_THEME.textPrimary}>Hunter Association Stats</text>
               <hstack paddingTop="small">
                 <vstack width="33%">
-                  <text size="small" color="#878A8C">Total Members</text>
-                  <text weight="bold">{gameState.players.length}</text>
+                  <text size="small" color={SHADOW_THEME.textSecondary}>Total Hunters</text>
+                  <text weight="bold" color={SHADOW_THEME.textPrimary}>{gameState.players.length}</text>
                 </vstack>
                 <vstack width="33%">
-                  <text size="small" color="#878A8C">Active Members</text>
-                  <text weight="bold">{gameState.players.filter(p => p.health > 0).length}</text>
+                  <text size="small" color={SHADOW_THEME.textSecondary}>Active Hunters</text>
+                  <text weight="bold" color={SHADOW_THEME.textPrimary}>{gameState.players.filter(p => p.health > 0).length}</text>
                 </vstack>
                 <vstack width="33%">
-                  <text size="small" color="#878A8C">Average Level</text>
-                  <text weight="bold">{Math.round(gameState.players.reduce((acc, p) => acc + p.level, 0) / gameState.players.length)}</text>
+                  <text size="small" color={SHADOW_THEME.textSecondary}>Average Rank</text>
+                  <text weight="bold" color={SHADOW_THEME.textPrimary}>
+                    {(() => {
+                      const avgLevel = Math.round(gameState.players.reduce((acc, p) => acc + p.level, 0) / gameState.players.length);
+                      let rank = "E";
+                      if (avgLevel >= 20) rank = "S";
+                      else if (avgLevel >= 15) rank = "A";
+                      else if (avgLevel >= 10) rank = "B";
+                      else if (avgLevel >= 5) rank = "C";
+                      else if (avgLevel >= 3) rank = "D";
+                      return rank;
+                    })()}
+                  </text>
                 </vstack>
               </hstack>
             </vstack>
@@ -855,23 +1177,23 @@ The party takes a rest at the campfire. All players have recovered to full healt
 
 // Menu item to create new game
 Devvit.addMenuItem({
-  label: 'Create New Dungeon Quest',
+  label: 'Create New Level Maxing Game',
   location: 'subreddit',
   onPress: async (_event, context) => {
     const { reddit, ui } = context;
     const subreddit = await reddit.getCurrentSubreddit();
     
     const post = await reddit.submitPost({
-      title: 'Dungeon Quests Adventure',
+      title: 'Level Maxing',
       subredditName: subreddit.name,
       preview: (
-        <vstack height="100%" width="100%" alignment="middle center">
-          <text size="large">Loading Dungeon Quests...</text>
+        <vstack height="100%" width="100%" alignment="middle center" backgroundColor={SHADOW_THEME.background}>
+          <text size="large" color={SHADOW_THEME.accent}>Loading Level Maxing...</text>
         </vstack>
       ),
     });
     
-    ui.showToast({ text: 'Adventure begins!' });
+    ui.showToast({ text: 'A new Gate has opened!' });
     ui.navigateTo(post);
   },
 });
@@ -881,7 +1203,7 @@ Devvit.addTrigger({
   event: 'CommentCreate',
   async onEvent(event, context) {
     if (!event.comment?.postId) return;
-    const storedState = await context.redis.get(`dungeon_${event.comment.postId}`);
+    const storedState = await context.redis.get(`sololeveling_${event.comment.postId}`);
     if (!storedState) return;
     
     const gameState = JSON.parse(storedState);
@@ -904,7 +1226,7 @@ Devvit.addTrigger({
       const playerIndex = gameState.players.findIndex(p => p.username === user.username);
       if (playerIndex === -1) {
         await context.reddit.submitComment({
-          text: `@${user.username} You must be a player in the game to use commands.`,
+          text: `@${user.username} You must be a registered hunter to use commands.`,
           id: comment.parentId
         });
         return;
@@ -913,19 +1235,19 @@ Devvit.addTrigger({
       // Non-battle commands that can be used anytime
       if (command === 'help') {
         await context.reddit.submitComment({
-          text: `# Dungeon Quests Commands
+          text: `# Level Maxing Commands
           
 **Battle Commands:**
 - \`/attack\` - Use default attack
 - \`/attack [skill_name]\` - Use a specific skill
-- \`/heal [player_name]\` - Heal a player (Clerics only)
+- \`/heal [player_name]\` - Heal a hunter (Healer Hunters only)
 
-**Town Commands:**
+**Association Commands:**
 - \`/shop\` - View available items in the shop
 - \`/buy [item_name]\` - Purchase an item from the shop
 - \`/inventory\` - View your inventory
 - \`/equip [item_name]\` - Equip an item from your inventory
-- \`/stats\` - View your character stats
+- \`/stats\` - View your hunter stats
 
 **General Commands:**
 - \`/help\` - Show this help message`,
@@ -940,7 +1262,7 @@ Devvit.addTrigger({
           case 'attack':
             if (gameState.battleState.turnOrder[0] !== user.username) {
               await context.reddit.submitComment({
-                text: `@${user.username} It's not your turn!`,
+                text: `@${user.username} It's not your turn to attack!`,
                 id: comment.parentId
               });
               return;
@@ -952,11 +1274,12 @@ Devvit.addTrigger({
             const attackMonster = attackQuest.monsters[attackQuest.currentMonsterIndex];
             
             let damage = 0;
+            let skillName = "basic attack";
             const skillMatch = args.match(/^(\w+)$/);
             
             if (skillMatch) {
-              const skillName = skillMatch[1].toLowerCase();
-              const skill = attackingPlayer.skills.find(s => s.name.toLowerCase() === skillName);
+              const skillNameInput = skillMatch[1].toLowerCase();
+              const skill = attackingPlayer.skills.find(s => s.name.toLowerCase() === skillNameInput);
               
               if (skill) {
                 if (skill.currentCooldown > 0) {
@@ -968,6 +1291,7 @@ Devvit.addTrigger({
                 }
                 
                 damage = skill.damage + (attackingPlayer.equipment.weapon?.power || 0);
+                skillName = skill.name;
                 
                 // Set cooldown
                 if (skill.cooldown > 0) {
@@ -982,11 +1306,19 @@ Devvit.addTrigger({
               damage = attackingPlayer.skills[0].damage + (attackingPlayer.equipment.weapon?.power || 0);
             }
             
+            // Special Shadow Monarch bonus damage - growing stronger as they level
+            if (attackingPlayer.class === 'Shadow Monarch') {
+              // Bonus damage scales with level
+              const shadowBonus = Math.floor(attackingPlayer.level * 1.5);
+              damage += shadowBonus;
+              gameState.log.push(`*Shadow power grants ${shadowBonus} bonus damage!*`);
+            }
+            
             // Apply damage to monster
             attackMonster.health -= damage;
             
             // Update game log
-            gameState.log.push(`**${attackingPlayer.username}** (${attackingPlayer.class}) used ${args || 'a basic attack'} for ${damage} damage on **${attackMonster.name}**!`);
+            gameState.log.push(`**${attackingPlayer.username}** (${attackingPlayer.class}) used ${skillName} for ${damage} damage on **${attackMonster.name}**!`);
             
             // Check if monster is defeated
             if (attackMonster.health <= 0) {
@@ -1006,6 +1338,16 @@ Devvit.addTrigger({
                   gameState.players[i].maxHealth += 10;
                   gameState.players[i].health = gameState.players[i].maxHealth;
                   gameState.log.push(`**${p.username}** leveled up to level ${gameState.players[i].level}!`);
+                  
+                  // Recalculate rank
+                  let newRank = "E";
+                  if (gameState.players[i].level >= 20) newRank = "S";
+                  else if (gameState.players[i].level >= 15) newRank = "A";
+                  else if (gameState.players[i].level >= 10) newRank = "B";
+                  else if (gameState.players[i].level >= 5) newRank = "C";
+                  else if (gameState.players[i].level >= 3) newRank = "D";
+                  
+                  gameState.log.push(`**${p.username}** is now a ${newRank}-Rank Hunter!`);
                 }
               });
               
@@ -1023,10 +1365,28 @@ Devvit.addTrigger({
                 gameState.players.forEach((p, i) => {
                   gameState.players[i].experience += questExpPerPlayer;
                   gameState.players[i].gold += questGoldPerPlayer;
+                  
+                  // Extra level up check after quest completion
+                  if (gameState.players[i].experience >= gameState.players[i].level * 100) {
+                    gameState.players[i].level += 1;
+                    gameState.players[i].maxHealth += 10;
+                    gameState.players[i].health = gameState.players[i].maxHealth;
+                    gameState.log.push(`**${p.username}** leveled up to level ${gameState.players[i].level}!`);
+                    
+                    // Recalculate rank again
+                    let newRank = "E";
+                    if (gameState.players[i].level >= 20) newRank = "S";
+                    else if (gameState.players[i].level >= 15) newRank = "A";
+                    else if (gameState.players[i].level >= 10) newRank = "B";
+                    else if (gameState.players[i].level >= 5) newRank = "C";
+                    else if (gameState.players[i].level >= 3) newRank = "D";
+                    
+                    gameState.log.push(`**${p.username}** is now a ${newRank}-Rank Hunter!`);
+                  }
                 });
                 
-                gameState.log.push(`**Quest Completed**: ${attackQuest.name}`);
-                gameState.log.push(`Each player earned ${questExpPerPlayer} XP and ${questGoldPerPlayer} gold!`);
+                gameState.log.push(`**Gate Cleared**: ${attackQuest.name}`);
+                gameState.log.push(`Each hunter earned ${questExpPerPlayer} XP and ${questGoldPerPlayer} gold!`);
                 
                 // Reset current quest
                 gameState.currentQuest = null;
@@ -1045,6 +1405,13 @@ Devvit.addTrigger({
                 monsterDamage = Math.max(1, monsterDamage - targetPlayer.equipment.armor.power);
               }
               
+              // Tank Hunter damage reduction special ability
+              if (targetPlayer.class === 'Tank Hunter') {
+                const damageReduction = Math.floor(targetPlayer.level * 0.5);
+                monsterDamage = Math.max(1, monsterDamage - damageReduction);
+                gameState.log.push(`*${targetPlayer.username}'s defensive ability reduces damage by ${damageReduction}!*`);
+              }
+              
               // Monster deals damage
               targetPlayer.health -= monsterDamage;
               gameState.log.push(`**${attackMonster.name}** attacks **${targetPlayer.username}** for ${monsterDamage} damage!`);
@@ -1052,14 +1419,14 @@ Devvit.addTrigger({
               // Check if player is knocked out
               if (targetPlayer.health <= 0) {
                 gameState.players[targetIndex].health = 0;
-                gameState.log.push(`**${targetPlayer.username}** has been knocked out!`);
+                gameState.log.push(`**${targetPlayer.username}** has been incapacitated!`);
                 
                 // Check if all players are knocked out
                 const allKnockedOut = gameState.players.every(p => p.health <= 0);
                 if (allKnockedOut) {
                   gameState.battleState.isActive = false;
-                  gameState.log.push(`**Party Wiped**: All players have been defeated!`);
-                  gameState.log.push(`The party must rest and recover before attempting another quest.`);
+                  gameState.log.push(`**Party Wiped**: All hunters have been defeated!`);
+                  gameState.log.push(`The hunters must return to the Association and recover before attempting another gate.`);
                 }
               }
               
@@ -1093,7 +1460,7 @@ Devvit.addTrigger({
             const healingPlayer = gameState.players[playerIndex];
             
             // Find heal skill
-            const healSkill = healingPlayer.skills.find(s => s.name.toLowerCase() === 'heal');
+            const healSkill = healingPlayer.skills.find(s => s.name.toLowerCase() === 'heal' || s.name.toLowerCase() === 'group_heal');
             if (!healSkill) {
               await context.reddit.submitComment({
                 text: `@${user.username} You don't have a healing ability!`,
@@ -1110,30 +1477,51 @@ Devvit.addTrigger({
               return;
             }
             
-            // Find target player
-            const targetName = args.trim();
-            const targetIndex = gameState.players.findIndex(p => p.username.toLowerCase() === targetName.toLowerCase());
-            
-            if (targetIndex === -1) {
-              await context.reddit.submitComment({
-                text: `@${user.username} Player "${targetName}" not found in the game.`,
-                id: comment.parentId
+            // Group heal affects all players
+            if (healSkill.name.toLowerCase() === 'group_heal') {
+              // Apply healing to all players
+              const healAmount = Math.abs(healSkill.damage);
+              
+              gameState.players.forEach((p, i) => {
+                if (p.health > 0) {  // Only heal living players
+                  gameState.players[i].health = Math.min(
+                    gameState.players[i].health + healAmount,
+                    gameState.players[i].maxHealth
+                  );
+                }
               });
-              return;
+              
+              // Set cooldown
+              const skillIndex = healingPlayer.skills.findIndex(s => s.id === healSkill.id);
+              healingPlayer.skills[skillIndex].currentCooldown = healSkill.cooldown;
+              
+              gameState.log.push(`**${healingPlayer.username}** casts Group Heal, restoring ${healAmount} health to all hunters!`);
+            } else {
+              // Find target player for individual heal
+              const targetName = args.trim();
+              const targetIndex = gameState.players.findIndex(p => p.username.toLowerCase() === targetName.toLowerCase());
+              
+              if (targetIndex === -1) {
+                await context.reddit.submitComment({
+                  text: `@${user.username} Hunter "${targetName}" not found in your party.`,
+                  id: comment.parentId
+                });
+                return;
+              }
+              
+              // Apply healing
+              const healAmount = Math.abs(healSkill.damage);
+              gameState.players[targetIndex].health = Math.min(
+                gameState.players[targetIndex].health + healAmount,
+                gameState.players[targetIndex].maxHealth
+              );
+              
+              // Set cooldown
+              const skillIndex = healingPlayer.skills.findIndex(s => s.id === healSkill.id);
+              healingPlayer.skills[skillIndex].currentCooldown = healSkill.cooldown;
+              
+              gameState.log.push(`**${healingPlayer.username}** heals **${gameState.players[targetIndex].username}** for ${healAmount} health!`);
             }
-            
-            // Apply healing
-            const healAmount = Math.abs(healSkill.damage);
-            gameState.players[targetIndex].health = Math.min(
-              gameState.players[targetIndex].health + healAmount,
-              gameState.players[targetIndex].maxHealth
-            );
-            
-            // Set cooldown
-            const skillIndex = healingPlayer.skills.findIndex(s => s.id === healSkill.id);
-            healingPlayer.skills[skillIndex].currentCooldown = healSkill.cooldown;
-            
-            gameState.log.push(`**${healingPlayer.username}** heals **${gameState.players[targetIndex].username}** for ${healAmount} health!`);
             
             // Monster's turn (same as attack)
             const healQuest = gameState.quests[gameState.currentQuest];
@@ -1182,7 +1570,7 @@ Devvit.addTrigger({
             ).join('\n');
             
             await context.reddit.submitComment({
-              text: `# Town Shop
+              text: `# Hunter Association Shop
 Available items for purchase:
 
 ${shopList}
@@ -1319,7 +1707,7 @@ Use \`/equip [item_name]\` to equip an item.`,
               equippingPlayer.inventory = equippingPlayer.inventory.filter(i => i !== equipItem);
               
               if (equipItem.id === 'health_potion') {
-                const healAmount = 50;
+                const healAmount = equipItem.power || 50;
                 equippingPlayer.health = Math.min(equippingPlayer.health + healAmount, equippingPlayer.maxHealth);
                 
                 await context.reddit.submitComment({
@@ -1338,10 +1726,18 @@ Use \`/equip [item_name]\` to equip an item.`,
           case 'stats':
             const statsPlayer = gameState.players[playerIndex];
             
+            // Calculate player rank based on level
+            let playerRank = "E";
+            if (statsPlayer.level >= 20) playerRank = "S";
+            else if (statsPlayer.level >= 15) playerRank = "A";
+            else if (statsPlayer.level >= 10) playerRank = "B";
+            else if (statsPlayer.level >= 5) playerRank = "C";
+            else if (statsPlayer.level >= 3) playerRank = "D";
+            
             await context.reddit.submitComment({
-              text: `# ${statsPlayer.username}'s Character Sheet
+              text: `# ${statsPlayer.username}'s Hunter Profile
 
-**Level ${statsPlayer.level} ${statsPlayer.class}**
+**Level ${statsPlayer.level} ${playerRank}-Rank ${statsPlayer.class}**
 
 - ❤️ Health: ${statsPlayer.health}/${statsPlayer.maxHealth}
 - 💰 Gold: ${statsPlayer.gold}
@@ -1367,7 +1763,7 @@ ${statsPlayer.skills.map(skill => `- ${skill.name}: ${skill.damage > 0 ? `${skil
       }
       
       // Save updated state
-      await context.redis.set(`dungeon_${event.comment.postId}`, JSON.stringify(gameState));
+      await context.redis.set(`sololeveling_${event.comment.postId}`, JSON.stringify(gameState));
       
       // Post battle update if we're in battle
       if (gameState.battleState.isActive) {
